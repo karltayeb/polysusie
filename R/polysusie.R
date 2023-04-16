@@ -23,7 +23,7 @@ polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5){
   sers <- list()
   A2 <- A  # these will have the "residualized" coefficients
   for(l in 1:L){
-    sers[[l]] <- polynomial_apprximate_ser(A2, X, prior_variance)
+    sers[[l]] <- polynomial_approximate_ser(A2, X, prior_variance)
     A2 <- add_coef2(A2, sers[[l]]$moments)
   }
 
@@ -31,7 +31,7 @@ polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5){
   for(i in 1:(max_iter - 1)){
     for(l in 1:L){
       A2 <- sub_coef2(A2, sers[[l]]$moments)
-      sers[[l]] <- polynomial_apprximate_ser(A2, X, prior_variance)
+      sers[[l]] <- polynomial_approximate_ser(A2, X, prior_variance)
       A2 <- add_coef2(A2, sers[[l]]$moments)
     }
   }
