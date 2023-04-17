@@ -38,3 +38,12 @@ test_polysusie <- function(){
   plot(log(ser2$alpha), log(ser$alpha)); abline(0, 1, col='red')
   plot(ser2$mu, ser$mu); abline(0, 1, col='red')
 }
+
+
+compare_solvers <- function() {
+  mu <- rnorm(5) + 1
+  a <- rnorm(5) + 1
+  s1 <- backsolve(construct_shift_matrix(mu), a)
+  s2 <- solve(construct_shift_matrix(mu), a)
+  testthat::expect_equal(s1, s2)
+}

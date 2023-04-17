@@ -11,7 +11,7 @@ add_coef2 <- function(A, moments){
 
 # subtract functions
 sub_coef <- function(a, mu){
-  return(solve(construct_shift_matrix(mu), a))
+  return(backsolve(construct_shift_matrix(mu), a))
 }
 sub_coef2 <- function(A, moments){
   A2 <- purrr::map(1:nrow(A), ~sub_coef(A[.x,], moments[.x,]))
