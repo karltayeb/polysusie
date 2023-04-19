@@ -1,5 +1,13 @@
 # Implement single effect regression with polynomial approximation
 
+compute_loglik_coef <- function(A, x){
+  loglik_coef <- 0
+  n = nrow(A)
+  M <- ncol(A) - 1
+  loglik_coef <- colSums(A * outer(x, seq(0, M), `^`))
+  return(loglik_coef)
+}
+
 # for each covariate:
 #   1. "scale" the polynomial f(psi_l | gamma=j) = f(x_j*b_l) = f2(b)
 #   2. sum the coefficients across observations + prior
@@ -17,39 +25,48 @@
 #'    log p(y_i | psi) as a function of the linear predictor psi = xb
 #' @param x a n vector of covariates
 #' @param prior_variance the prior variance of the effect
-polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL){
+polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, gaussian=T){
   # TODO: how to include intercept?
-  M <- ncol(A) - 1
-  Ascale <- purrr::map(1:nrow(A), ~ A[.x,] * x[.x]^(0:M))
-  post_coef_M <- colSums(do.call(rbind, Ascale)) + prior_coef
+  M <- ncol(A)-1
+  loglik_coef <- compute_loglik_coef(A, x)
 
-  # project to Gaussian/quadratic
-  post_gauss <- poly_to_gaussian(post_coef_M)
+  if(gaussian){
+    # project to Gaussian
+    post_gauss <- poly_to_gaussian(loglik_coef + prior_coef)
+    post_coef <- gaussian_to_poly(post_gauss$mu, post_gauss$var, M)
+    prior_var <- 1 / (-2 * prior_coef[3])
+    kl <- with(post_gauss, compute_kl_gaussian(mu, var, 0, prior_var))  # KL[q || p], analytic if q, p Gaussian
+    b_moments <- compute_normal_moments(post_gauss$mu, post_gauss$var, M)
+  } else{
+    # normalize log density. compute moments + kl
+    post_coef <- normalize_polynomial_log_density(loglik_coef + prior_coef)
+    kl <- compute_kl_polynomial(post_coef, prior_coef)
+    b_moments <- compute_moments_polynomial(post_coef, M)
+  }
 
-  # compute moments E[psi^k] k = 0,...,M
-  # result is a n x (M+1) matrix
-  moments <- compute_psi_moments(x, post_gauss$mu, post_gauss$var, M)
-
-  # compute ELBO
-  loglik <- sum(A * moments)
-  prior_var <- -prior_coef[3]/0.5
-  kl <- with(post_gauss, normal_kl(mu, var, 0, prior_var))  # KL[q || p], analytic if q, p Gaussian
+  loglik <- sum(loglik_coef * b_moments)
   elbo <- loglik - kl
 
-  # summarize posterior
   post <- list(
-    coef = coef,
     q = post_gauss,
-    moments = moments,
-    elbo = elbo
+    post_coef = post_coef,
+    b_moments = b_moments,
+    elbo = elbo,
+    kl = kl
   )
   return(post)
+}
+
+
+compute_kl_polynomial_approximate_ser <- function(ser){
+  mu <- 0
+  var <- 1
 }
 
 polynomial_approximate_ser <- function(A, X, prior_variance){
   # 1. compute prior_coef from prior_variance
   M <- ncol(A) - 1
-  prior_coef = make_prior_p(0, prior_var, M)
+  prior_coef = gaussian_to_poly(0, prior_variance, M)
 
   # 2. compute polynomial approximate posterior for each column of X
   post <- purrr::map(1:ncol(X), ~polynomial_approximate_univariate_regression(A, X[, .x], prior_coef=prior_coef))
@@ -58,13 +75,15 @@ polynomial_approximate_ser <- function(A, X, prior_variance){
   elbos <- purrr::map_dbl(1:length(post), ~ post[[.x]]$elbo)
   alpha <- softmax(elbos)
   elbo <- mean(elbos)
+
   moments <- 0
   for(i in 1:length(post)){
-    moments <- moments + post[[i]]$moments * alpha[[i]]
+    moments <- moments + compute_psi_moments(X[, i], post[[i]]$b_moments) * alpha[[i]]
   }
 
   mu <- purrr::map_dbl(1:length(post), ~ post[[.x]]$q$mu)
   var <- purrr::map_dbl(1:length(post), ~ post[[.x]]$q$var)
+  kl <- sum(alpha * purrr::map_dbl(1:length(post), ~ post[[.x]]$kl)) + compute_kl_categorical(alpha)
 
   post2 <- list(
     mu = mu,
@@ -72,7 +91,8 @@ polynomial_approximate_ser <- function(A, X, prior_variance){
     alpha = alpha,
     elbo = elbo,
     moments = moments,
-    post = post
+    post = post,
+    kl = kl
   )
   return(post2)
 }
