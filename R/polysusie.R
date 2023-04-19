@@ -1,39 +1,55 @@
 # Impliment polynomial approximation SuSiE
 
-# add functions
-add_coef <- function(a, mu){
-  return((construct_shift_matrix(mu) %*% a)[,1])
-}
-add_coef2 <- function(A, moments){
-  A2 <- purrr::map(1:nrow(A), ~add_coef(A[.x,], moments[.x,]))
-  return(do.call(rbind, A2))
+polynomial_susie_compute_elbo <- function(A, sers, intercept){
+  loglik <- sum(A[,1])
+  kl <- sum(purrr::map_dbl(sers, ~.x$kl)) + intercept$kl
+  return(loglik - kl)
 }
 
-# subtract functions
-sub_coef <- function(a, mu){
-  return(backsolve(construct_shift_matrix(mu), a))
-}
-sub_coef2 <- function(A, moments){
-  A2 <- purrr::map(1:nrow(A), ~sub_coef(A[.x,], moments[.x,]))
-  return(do.call(rbind, A2))
-}
-
-polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5){
-  # 1. Fit SERs, first pass
-  sers <- list()
+polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5, fit_intercept=T){
+  # 0. Setup
+  M <- ncol(A)-1
+  shifter <- construct_shift_matrix_generator(M) # make shift function
+  ones <- rep(1, nrow(A))
+  intercept_coef <- gaussian_to_poly(0, 1e8, M) # for intercept model
   A2 <- A  # these will have the "residualized" coefficients
+
+  # 1. Fit SERs, first pass
+  if(fit_intercept){
+    intercept <- polynomial_approximate_univariate_regression(A2, ones, intercept_coef)
+    A2 <- add_intercept(A2, intercept$b_moments, shifter)
+  } else{
+    intercept <- list(q=list(mu=0, var=0), kl=0)
+  }
+
+  sers <- list()
   for(l in 1:L){
     sers[[l]] <- polynomial_approximate_ser(A2, X, prior_variance)
-    A2 <- add_coef2(A2, sers[[l]]$moments)
+    A2 <- add_coef2(A2, sers[[l]]$moments, shifter = shifter)
   }
 
   # 2. iterate
-  for(i in 1:(max_iter - 1)){
+  elbos <- -Inf # polynomial_susie_compute_elbo(A2, sers)
+  i = 1
+  while(i < max_iter){
     for(l in 1:L){
-      A2 <- sub_coef2(A2, sers[[l]]$moments)
+      # update SER
+      A2 <- sub_coef2(A2, sers[[l]]$moments, shifter = shifter)
       sers[[l]] <- polynomial_approximate_ser(A2, X, prior_variance)
-      A2 <- add_coef2(A2, sers[[l]]$moments)
+      A2 <- add_coef2(A2, sers[[l]]$moments, shifter = shifter)
+
+      # update intercept
+      if(fit_intercept){
+        A2 <- sub_intercept(A2, intercept$b_moments, shifter)
+        intercept <- polynomial_approximate_univariate_regression(A2, ones, intercept_coef)
+        A2 <- add_intercept(A2, intercept$b_moments, shifter)
+      }
+
+      # track ELBO
+      elbo <- polynomial_susie_compute_elbo(A2, sers, intercept)
+      elbos <- c(elbos, elbo)
     }
+    i <- i + 1
   }
 
   # 3. extract posterior
@@ -43,7 +59,11 @@ polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5){
 
   res <- list(alpha = alpha,
               mu = mu,
-              var = var)
+              var = var,
+              intercept = intercept$q,
+              elbos = elbos,
+              sers=sers,
+              A2 = A2)
   return(res)
 }
 
