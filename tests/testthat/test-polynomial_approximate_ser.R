@@ -59,7 +59,7 @@ check_elbo_monotone <- function(){
 
   tictoc::tic()
   A <- bernoulli_poly_approx(sim$y, 4, 2)
-  susie <- polynomial_approximate_susie(A, sim$X, prior_variance=1, L=5, max_iter = 5, fit_intercept = F)
+  susie <- polynomial_approximate_susie(A, sim$X, prior_variance=1, L=5, max_iter = 5, fit_intercept = T)
   plot(susie$elbos)
   cs <- logisticsusie:::get_all_cs(susie$alpha)
   tictoc::toc()

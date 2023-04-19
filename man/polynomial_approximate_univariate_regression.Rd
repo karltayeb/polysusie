@@ -4,7 +4,12 @@
 \alias{polynomial_approximate_univariate_regression}
 \title{Polynomial approximate univariate regression}
 \usage{
-polynomial_approximate_univariate_regression(A, x, prior_coef = NULL)
+polynomial_approximate_univariate_regression(
+  A,
+  x,
+  prior_coef = NULL,
+  gaussian = T
+)
 }
 \arguments{
 \item{A}{an n x M matrix of coefficients--

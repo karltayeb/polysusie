@@ -27,3 +27,8 @@ compute_kl_polynomial <- function(q, p){
   kl <- cubature::hcubature(f, -20, 20)$integral
   return(kl)
 }
+
+
+is_monotone <- function (v) {
+  return(all(tail(v, -1) - head(v, -1) >= 0))
+}
