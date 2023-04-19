@@ -6,7 +6,9 @@ polynomial_susie_compute_elbo <- function(A, sers, intercept){
   return(loglik - kl)
 }
 
-polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5, fit_intercept=T){
+polynomial_approximate_susie <- function(A, X,
+                                         prior_variance, L=5, fit_intercept=T,
+                                         max_iter=100, tol=1e-8){
   # 0. Setup
   M <- ncol(A)-1
   shifter <- construct_shift_matrix_generator(M) # make shift function
@@ -44,10 +46,13 @@ polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5, 
         intercept <- polynomial_approximate_univariate_regression(A2, ones, intercept_coef)
         A2 <- add_intercept(A2, intercept$b_moments, shifter)
       }
-
-      # track ELBO
-      elbo <- polynomial_susie_compute_elbo(A2, sers, intercept)
-      elbos <- c(elbos, elbo)
+    }
+    # track ELBO
+    elbo <- polynomial_susie_compute_elbo(A2, sers, intercept)
+    elbos <- c(elbos, elbo)
+    if(diff(tail(elbos, 2)) < tol){
+      message('converged')
+      break
     }
     i <- i + 1
   }
@@ -57,13 +62,18 @@ polynomial_approximate_susie <- function(A, X, prior_variance, L=5, max_iter=5, 
   mu <- do.call(rbind, purrr::map(1:length(sers), ~ sers[[.x]]$mu))
   var <- do.call(rbind, purrr::map(1:length(sers), ~ sers[[.x]]$var))
 
+  # summarize
+  cs <- get_all_cs(alpha)
+
   res <- list(alpha = alpha,
               mu = mu,
               var = var,
               intercept = intercept$q,
               elbos = elbos,
               sers=sers,
-              A2 = A2)
+              A2 = A2,
+              converged = (diff(tail(elbos, 2)) < tol),
+              cs=cs)
   return(res)
 }
 
