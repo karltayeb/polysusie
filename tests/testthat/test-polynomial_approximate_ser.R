@@ -57,9 +57,10 @@ compare_solvers <- function() {
 check_elbo_monotone <- function(){
   sim <- logisticsusie::sim_susie()
 
+  fit <- with(sim, logistic_polysusie(X, y, 5, 1, -5, 5, 2))
   tictoc::tic()
-  A <- bernoulli_poly_approx(sim$y, 4, 2)
-  susie <- polynomial_approximate_susie(A, sim$X, prior_variance=1, L=5, max_iter = 5, fit_intercept = T)
+  A <- bernoulli_poly_approx(sim$y, -4, 4, 2)
+  susie <- polynomial_approximate_susie(A, sim$X, prior_variance=1, L=5, max_iter = 50, fit_intercept = T, tol=1e-5)
   plot(susie$elbos)
   cs <- logisticsusie:::get_all_cs(susie$alpha)
   tictoc::toc()
