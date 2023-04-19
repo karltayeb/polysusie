@@ -4,8 +4,8 @@
 #'
 #' make polynomial approximation on the interval [left, right]
 #' @param f a 1d function
-#' @param left
-#' @param right
+#' @param left boundary of approximation
+#' @param right boundary of approximation
 #' @param M degree of the approximation
 #' @param plot boolean to create a plot of the function
 make_approximation <- function(f, left=-4, right=4, M=2, plot=F){

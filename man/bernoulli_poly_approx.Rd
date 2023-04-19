@@ -2,10 +2,22 @@
 % Please edit documentation in R/approximation.R
 \name{bernoulli_poly_approx}
 \alias{bernoulli_poly_approx}
-\title{get approximate polynomial representation of the data y}
+\title{Bernoulli + sigmoid polynomial approximation}
 \usage{
-bernoulli_poly_approx(y, R, k)
+bernoulli_poly_approx(y, left, right, M)
+}
+\arguments{
+\item{y}{observation}
+
+\item{left}{left boundary or approximation}
+
+\item{right}{boundardy of approximation}
+
+\item{M}{degree of approximation}
+}
+\value{
+coefficients for polynomial approximation f(\psi) \approd log p(y | \psi)
 }
 \description{
-get approximate polynomial representation of the data y
+Bernoulli + sigmoid polynomial approximation
 }
