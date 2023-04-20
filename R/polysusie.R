@@ -6,6 +6,7 @@ polynomial_susie_compute_elbo <- function(A, sers, intercept){
   return(loglik - kl)
 }
 
+#' @export
 polynomial_approximate_susie <- function(A, X,
                                          prior_variance, L=5, fit_intercept=T,
                                          max_iter=100, tol=1e-8){

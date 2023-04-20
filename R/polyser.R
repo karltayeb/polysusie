@@ -25,6 +25,7 @@ compute_loglik_coef <- function(A, x){
 #'    log p(y_i | psi) as a function of the linear predictor psi = xb
 #' @param x a n vector of covariates
 #' @param prior_variance the prior variance of the effect
+#' @export
 polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, gaussian=T){
   # TODO: how to include intercept?
   M <- ncol(A)-1
@@ -63,6 +64,7 @@ compute_kl_polynomial_approximate_ser <- function(ser){
   var <- 1
 }
 
+#' @export
 polynomial_approximate_ser <- function(A, X, prior_variance){
   # 1. compute prior_coef from prior_variance
   M <- ncol(A) - 1

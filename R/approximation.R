@@ -8,6 +8,7 @@
 #' @param right boundary of approximation
 #' @param M degree of the approximation
 #' @param plot boolean to create a plot of the function
+#' @export
 make_approximation <- function(f, left=-4, right=4, M=2, plot=F){
   p <- rev(pracma::polyApprox(f, left, right, n=M)$p)
   if(plot){
