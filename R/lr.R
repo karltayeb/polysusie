@@ -1,3 +1,4 @@
+#' @export
 logistic_polysusie<- function(X, y, L, prior_variance=1,
                                 left=-5, right=5, M=2,
                                 max_iter=100, tol=1e-5){
