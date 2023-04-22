@@ -64,7 +64,7 @@ polynomial_approximate_susie <- function(A, X,
   var <- do.call(rbind, purrr::map(1:length(sers), ~ sers[[.x]]$var))
 
   # summarize
-  cs <- get_all_cs(alpha)
+  cs <- compute_cs(alpha)
 
   res <- list(alpha = alpha,
               mu = mu,

@@ -1,4 +1,4 @@
-get_cs <- function (alpha, requested_coverage = 0.95) {
+compute_cs1 <- function (alpha, requested_coverage = 0.95) {
   rho <- order(-alpha)
   idx <- min(sum(cumsum(alpha[rho]) < requested_coverage) +
                1, length(alpha))
@@ -29,9 +29,22 @@ print.cs <- function(cs){
   cat(ln1, '\n', ln2, '\n', ln3)
 }
 
-get_all_cs <- function (alpha, requested_coverage = 0.95) {
-  L <- dim(alpha)[1]
-  sets <- purrr::map(1:L, ~get_cs(alpha[.x, ], requested_coverage))
-  names(sets) <- paste0("L", 1:L)
-  return(sets)
+#' Compute credible sets
+#'
+#' Compute credible sets at a requested coverage level
+#' @param alpha a vector or matrix, where each row is a probability vector
+#' @param requested_coverage the minimum probability mass the CS must satisfy
+#' @returns a credible set object with the credible set and other summaries
+#'     if `alpha` is a vector, returns a list of credible set objects with names
+#'     `L1`, `L2`, ... etc.
+#' @export
+compute_cs <- function (alpha, requested_coverage = 0.95) {
+  if(is.null(dim(alpha))){
+    return(compute_cs1(alpha, requested_coverage = requested_coverage))
+  } else{
+    L <- dim(alpha)[1]
+    sets <- purrr::map(1:L, ~compute_cs(alpha[.x, ], requested_coverage))
+    names(sets) <- paste0("L", 1:L)
+    return(sets)
+  }
 }
