@@ -72,6 +72,24 @@ compute_normal_moments <- function(mu, var, k){
   return(purrr::map_dbl(0:k, ~actuar::mnorm(.x, mu, sqrt(var))))
 }
 
+#' Compute normal moments
+#'
+#' Recursively compute moments of normal distribution using reccurence relation
+#' M_k = mu M_{k-1} + var * (k-1) * M_{k-2}
+#' @param mu mean parameter of normal distribution
+#' @param var variance of normal distribution
+#' @param K number of moments to compute
+#' @return a length K vector with the first K (un-centered) moments of N(mu, var)
+compute_normal_moments2 <- function(mu, var, K){
+  moments <- rep(0, K)
+  moments[1] <- mu
+  moments[2] <- mu^2 + var
+  for (k in 3:K){
+    moments[k] <- mu * moments[k-1] + (k-1) * var * moments[k-2]
+  }
+  return(moments)
+}
+
 #' compute k moments for psi = xb, b ~ N(mu, var)
 compute_psi_moments <- function(x, b_moments){
   M <- length(b_moments) - 1
