@@ -28,6 +28,7 @@ compute_loglik_coef <- function(A, x){
 #' @export
 polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, gaussian=T){
   # TODO: how to include intercept?
+  # currently intercept is fit as a seperate component
   M <- ncol(A)-1
   loglik_coef <- compute_loglik_coef(A, x)
 
