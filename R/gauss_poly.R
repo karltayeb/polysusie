@@ -26,7 +26,6 @@ poly_to_gaussian_laplace2 <- function(p, poly = F){
   return(res)
 }
 
-
 #' Laplace approximation for polynomial density
 #'
 #' Make a quadratic approximation to the polynomial log-density at the mode

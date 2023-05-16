@@ -1,6 +1,6 @@
 test_that("polynomial q and gaussian q agree for M=2", {
   sim <- logisticsusie::sim_susie()
-  A <- bernoulli_poly_approx(sim$y, 4, 2)
+  A <- bernoulli_poly_approx(sim$y, -4, 4, 2)
   prior_coef <- gaussian_to_poly(0, 1, 2)
 
   uni1 <- polynomial_approximate_univariate_regression(A, sim$X[,1], prior_coef = prior_coef)

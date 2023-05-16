@@ -41,6 +41,7 @@ polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, 
     b_moments <- compute_normal_moments(post_gauss$mu, post_gauss$var, M)
   } else{
     # normalize log density. compute moments + kl
+    post_gauss <- NULL
     post_coef <- normalize_polynomial_log_density(loglik_coef + prior_coef)
     kl <- compute_kl_polynomial(post_coef, prior_coef)
     b_moments <- compute_moments_polynomial(post_coef, M)
@@ -59,12 +60,15 @@ polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, 
   return(post)
 }
 
-
-compute_kl_polynomial_approximate_ser <- function(ser){
-  mu <- 0
-  var <- 1
-}
-
+#' Polynomial approximate SER
+#'
+#' Fit single effect regression with polynomial approximation
+#' The "data" are polynomial coefficients approximating the log-likelihood of
+#' each observation as a function of the (unobserved) linear predictor
+#' @param A a matrix of polynomial coefficients, each row is an observations
+#' @param X design matrix
+#' @param prior_variance prior variance of effect size b ~ N(0, prior_variance)
+#' @return list summarizing SER posterior
 #' @export
 polynomial_approximate_ser <- function(A, X, prior_variance){
   # 1. compute prior_coef from prior_variance
