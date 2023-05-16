@@ -1,6 +1,6 @@
 compare_with_jj <- function(){
   sim <- logisticsusie::sim_ser()
-  A <- bernoulli_poly_approx(sim$y, 4, 2)
+  A <- bernoulli_poly_approx(sim$y, -4, 4, 2)
   prior_coef = gaussian_to_poly(0, 1, 2)
   uni <- polynomial_approximate_univariate_regression(A, sim$X[,1], prior_coef)
 
