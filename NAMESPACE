@@ -2,6 +2,7 @@
 
 S3method(print,cs)
 export(compute_cs)
+export(compute_moments_polynomial_is)
 export(logistic_polysusie)
 export(make_approximation)
 export(polynomial_approximate_ser)
