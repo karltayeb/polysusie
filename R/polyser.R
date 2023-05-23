@@ -65,6 +65,7 @@ polynomial_approximate_univariate_regression <- function(A, x, prior_coef=NULL, 
 #' Fit single effect regression with polynomial approximation
 #' The "data" are polynomial coefficients approximating the log-likelihood of
 #' each observation as a function of the (unobserved) linear predictor
+#'
 #' @param A a matrix of polynomial coefficients, each row is an observations
 #' @param X design matrix
 #' @param prior_variance prior variance of effect size b ~ N(0, prior_variance)
