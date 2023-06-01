@@ -14,6 +14,8 @@ bernoulli_poly_approx(y, left, right, M)
 \item{right}{boundardy of approximation}
 
 \item{M}{degree of approximation}
+
+\item{center}{midpoint of approximation region}
 }
 \value{
 coefficients for polynomial approximation f(\psi) \approd log p(y | \psi)
