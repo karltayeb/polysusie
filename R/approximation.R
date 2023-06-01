@@ -24,29 +24,48 @@ loglik0 <- function(psi){
   log(sigmoid(-psi))
 }
 
+loglik1 <- function(psi){
+  psi + log(sigmoid(-psi))
+}
+
 #' Bernoulli + sigmoid polynomial approximation
 #'
 #' @param y observation
 #' @param left left boundary or approximation
 #' @param right boundardy of approximation
+#' @param center midpoint of approximation region
 #' @param M degree of approximation
 #' @returns coefficients for polynomial approximation f(\psi) \approd log p(y | \psi)
 bernoulli_poly_approx <- function(y, left, right, M){
   n <- length(y)
-  p0 <- make_approximation(loglik0, left, right, M)
 
-  # for y=1 flip the sign of odd coefficients (note: 0 indexing)
-  p1 <- p0
-  p1[seq(2, length(p0), by=2)] <- p1[seq(2, length(p0), by=2)] * -1
+  # make polynomial for each unique combination of (y, left, right)
 
-  m <- matrix(nrow = n, ncol = M + 1)
-  for(i in 1:length(y)){
-    if(y[i] == 0){
-      m[i,] <- p0
-    } else{
-      m[i,] <- p1
-    }
-  }
+  # put data into a tibble
+  dat <- tibble::tibble(y = y) %>%
+    dplyr::mutate(left = left, right = right)
+
+  # compute unique coefficients for y==0
+  coef0 <- dat %>%
+    unique() %>%
+    dplyr::filter(y == 0) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(coef = list(make_approximation(loglik1, left, right, M)))
+
+  # compute unique coefficients for y==1
+  coef1 <- dat %>%
+    unique() %>%
+    dplyr::filter(y == 1) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(coef = list(make_approximation(loglik1, left, right, M)))
+
+  # concatenate results
+  coef <- rbind(coef0, coef1)
+
+  # map coefficents to observations, returns a n x (M+1) matrix
+  m <- dat %>%
+    dplyr::inner_join(coef) %>%
+    {do.call(rbind, .$coef)}
   return(m)
 }
 
