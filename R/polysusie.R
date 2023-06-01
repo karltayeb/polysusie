@@ -72,6 +72,7 @@ polynomial_approximate_susie <- function(A, X,
               intercept = intercept$q,
               elbos = elbos,
               sers=sers,
+              A = A,
               A2 = A2,
               converged = (diff(tail(elbos, 2)) < tol),
               cs=cs)
