@@ -69,3 +69,33 @@ bernoulli_poly_approx <- function(y, left, right, M){
   return(m)
 }
 
+
+#' Bernoulli + sigmoid polynomial approximation 2
+#'
+#' @param y observation
+#' @param left left boundary or approximation
+#' @param right boundardy of approximation
+#' @param center midpoint of approximation region
+#' @param M degree of approximation
+#' @returns coefficients for polynomial approximation f(\psi) \approd log p(y | \psi)
+bernoulli_poly_approx <- function(y, left, right, M){
+  n <- length(y)
+
+  # make polynomial for each unique combination of (y, left, right)
+  intervals <- tibble::tibble(left = left, right = right) %>%
+    dplyr::distinct() %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      coef0 = list(make_approximation(loglik0, left, right, M)),
+      coef1 = list(make_approximation(loglik1, left, right, M))
+    ) %>%
+    dplyr::ungroup()
+
+  m <- dplyr::tibble(y=y, left=left, right=right) %>%
+    dplyr::left_join(intervals) %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(coef = list((1 - y) * coef0 + y * coef1)) %>%
+    {do.call(rbind, .$coef)}
+
+  return(m)
+}
