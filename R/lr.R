@@ -1,5 +1,5 @@
 #' @export
-logistic_polysusie<- function(X, y, L, prior_variance=1,
+logistic_polysusie <- function(X, y, L, prior_variance=1,
                                 left=5, right=5, center=0, M=2,
                                 max_iter=100, tol=1e-5, gaussian=T){
   if(!gaussian){
